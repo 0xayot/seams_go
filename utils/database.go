@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	models "seams_go/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,7 +26,7 @@ func InitialiseDB() {
 	}
 	log.Print("Successfully connected!")
 
-	// err = DB.AutoMigrate(models.User{})
+	err = DB.AutoMigrate(models.User{})
 	if err != nil {
 		log.Print("Failed Migration")
 		log.Panic(err.Error())
