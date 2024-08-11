@@ -19,9 +19,9 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	if &input.Email == nil {
 		return nil, fmt.Errorf("email is required")
 	}
-	validEmail := ValidateGoogleIdToken(input.Email, input.Token)
+	// validEmail := ValidateGoogleIdToken(input.Email, input.Token)
 
-	fmt.Print("\n Speechless \n \n ", validEmail)
+	// fmt.Print("\n Speechless \n \n ", validEmail)
 
 	// Check if user already exists
 	var existingUser models.User
@@ -46,7 +46,12 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 				return nil, fmt.Errorf("error creating user: %w", err)
 			}
 
-			jwt := "string"
+			jwt, err := GenerateJWT(newUser.ID.String())
+
+			if err != nil {
+				fmt.Printf("Error signing token: %v\n", err)
+			}
+
 			response := model.User{
 				ID:       newUser.ID.String(),
 				Name:     newUser.Name,
@@ -56,11 +61,19 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 				Email:    &newUser.Email,
 				Jwt:      &jwt,
 			}
-			return &response, nil
+			return &response, err
 		}
 		return nil, fmt.Errorf("error checking for existing user: %w", result.Error)
 	} else {
-		jwt := "string"
+		jwt, err := GenerateJWT(existingUser.ID.String())
+
+		if err != nil {
+			fmt.Printf("Error signing token: %v\n", err)
+		}
+
+		stuff, err := EnsureAuthurised(jwt)
+		fmt.Printf("\n \n stuff: %+v\n ", stuff)
+
 		response := model.User{
 			ID:       existingUser.ID.String(),
 			Email:    &existingUser.Email,
@@ -69,7 +82,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 			Username: &existingUser.Username,
 			Jwt:      &jwt,
 		}
-		return &response, nil
+		return &response, err
 	}
 }
 
