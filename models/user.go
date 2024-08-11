@@ -5,7 +5,7 @@ type User struct {
 	Email string
 
 	Name     string
-	Provider *string
+	Provider string
 	Avi      string
 	Sex      string
 	Username string

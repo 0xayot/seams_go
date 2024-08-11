@@ -3,9 +3,10 @@
 package model
 
 type CreateUser struct {
-	Email    *string `json:"email,omitempty"`
+	Token    string  `json:"token"`
+	Email    string  `json:"email"`
 	Name     string  `json:"name"`
-	Provider *string `json:"provider,omitempty"`
+	Provider string  `json:"provider"`
 	Avi      *string `json:"avi,omitempty"`
 	Sex      *string `json:"sex,omitempty"`
 	Username *string `json:"username,omitempty"`
@@ -15,13 +16,6 @@ type Mutation struct {
 }
 
 type Query struct {
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
 }
 
 type User struct {
