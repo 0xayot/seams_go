@@ -26,7 +26,8 @@ func InitialiseDB() {
 	}
 	log.Print("Successfully connected!")
 
-	err = DB.AutoMigrate(models.User{})
+	err = DB.AutoMigrate(models.User{},
+		models.Measurement{})
 	if err != nil {
 		log.Print("Failed Migration")
 		log.Panic(err.Error())

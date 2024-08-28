@@ -12,7 +12,33 @@ type CreateUser struct {
 	Username *string `json:"username,omitempty"`
 }
 
+type Measurement struct {
+	ID           string                 `json:"id"`
+	Name         *string                `json:"name,omitempty"`
+	MeasuredBy   *string                `json:"measuredBy,omitempty"`
+	Measurements map[string]interface{} `json:"measurements,omitempty"`
+	ShoeSize     *string                `json:"shoeSize,omitempty"`
+	Active       *bool                  `json:"active,omitempty"`
+	CreatedAt    *string                `json:"createdAt,omitempty"`
+}
+
+type MeasurementInput struct {
+	Name         *string                `json:"name,omitempty"`
+	MeasuredBy   *string                `json:"measuredBy,omitempty"`
+	Measurements map[string]interface{} `json:"measurements,omitempty"`
+	ShoeSize     *string                `json:"shoeSize,omitempty"`
+	Active       *bool                  `json:"active,omitempty"`
+}
+
 type Mutation struct {
+}
+
+type PublicUser struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Avi      *string `json:"avi,omitempty"`
+	Sex      *string `json:"sex,omitempty"`
+	Username *string `json:"username,omitempty"`
 }
 
 type Query struct {

@@ -1,9 +1,11 @@
 type Query {
   helloWorld: String
+  getCurrentUser: User
 }
 
 type Mutation {
   createUser(input: CreateUser!): User
+  createMeasurement(input: MeasurementInput!): Measurement
 }
 
 type User {
@@ -17,6 +19,14 @@ type User {
   jwt: String
 }
 
+type PublicUser {
+  id: ID!
+  name: String!
+  avi: String
+  sex: String
+  username: String
+}
+
 input CreateUser {
   token: String!
   email: String!
@@ -27,3 +37,22 @@ input CreateUser {
   username: String
 }
 
+type Measurement {
+  id: ID!
+  name: String
+  measuredBy: String
+  measurements: Map
+  shoeSize: String
+  active: Boolean
+  createdAt: String
+}
+
+input MeasurementInput {
+  name: String
+  measuredBy: String
+  measurements: Map
+  shoeSize: String
+  active: Boolean
+}
+
+scalar Map

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"seams_go/models"
+	. "seams_go/models"
+	models "seams_go/models"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -68,7 +69,7 @@ func EnsureAuthurised(jwtToken string) (*models.User, error) {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		fmt.Printf("Claims: %+v\n", claims)
+
 		var user models.User
 
 		result := DB.Where("id = ?", claims.Id).First(&user)
@@ -86,11 +87,9 @@ func EnsureAuthurised(jwtToken string) (*models.User, error) {
 	}
 }
 
-var userCtxKey = &contextKey{"user"}
+type contextKey string
 
-type contextKey struct {
-	name string
-}
+const userCtxKey contextKey = "user"
 
 func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -110,9 +109,8 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 				http.Error(w, "Invalid token", http.StatusForbidden)
 				return
 			}
-
 			// put it in context
-			ctx := context.WithValue(r.Context(), userCtxKey, &user)
+			ctx := context.WithValue(r.Context(), userCtxKey, user)
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
@@ -122,7 +120,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func UseGQLContext(ctx context.Context) *models.User {
-	raw, _ := ctx.Value(userCtxKey).(*models.User)
-	return raw
+func UseGQLContext(ctx context.Context) *User {
+	user, _ := ctx.Value(userCtxKey).(*User)
+	return user
 }
