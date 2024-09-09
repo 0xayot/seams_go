@@ -53,6 +53,7 @@ type ComplexityRoot struct {
 		ID           func(childComplexity int) int
 		MeasuredBy   func(childComplexity int) int
 		Measurements func(childComplexity int) int
+		Metadata     func(childComplexity int) int
 		Name         func(childComplexity int) int
 		ShoeSize     func(childComplexity int) int
 	}
@@ -60,18 +61,21 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateMeasurement func(childComplexity int, input model.MeasurementInput) int
 		CreateUser        func(childComplexity int, input model.CreateUser) int
+		EditUser          func(childComplexity int, input model.EditUser) int
 	}
 
 	PublicUser struct {
-		Avi      func(childComplexity int) int
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Sex      func(childComplexity int) int
-		Username func(childComplexity int) int
+		Avi                func(childComplexity int) int
+		CurrentMeasurement func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
+		Sex                func(childComplexity int) int
+		Username           func(childComplexity int) int
 	}
 
 	Query struct {
 		GetCurrentUser func(childComplexity int) int
+		GetUser        func(childComplexity int, id string) int
 		HelloWorld     func(childComplexity int) int
 	}
 
@@ -83,17 +87,20 @@ type ComplexityRoot struct {
 		Name     func(childComplexity int) int
 		Provider func(childComplexity int) int
 		Sex      func(childComplexity int) int
+		Type     func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.CreateUser) (*model.User, error)
+	EditUser(ctx context.Context, input model.EditUser) (*model.User, error)
 	CreateMeasurement(ctx context.Context, input model.MeasurementInput) (*model.Measurement, error)
 }
 type QueryResolver interface {
 	HelloWorld(ctx context.Context) (*string, error)
 	GetCurrentUser(ctx context.Context) (*model.User, error)
+	GetUser(ctx context.Context, id string) (*model.PublicUser, error)
 }
 
 type executableSchema struct {
@@ -150,6 +157,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Measurement.Measurements(childComplexity), true
 
+	case "Measurement.metadata":
+		if e.complexity.Measurement.Metadata == nil {
+			break
+		}
+
+		return e.complexity.Measurement.Metadata(childComplexity), true
+
 	case "Measurement.name":
 		if e.complexity.Measurement.Name == nil {
 			break
@@ -188,12 +202,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.CreateUser)), true
 
+	case "Mutation.editUser":
+		if e.complexity.Mutation.EditUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditUser(childComplexity, args["input"].(model.EditUser)), true
+
 	case "PublicUser.avi":
 		if e.complexity.PublicUser.Avi == nil {
 			break
 		}
 
 		return e.complexity.PublicUser.Avi(childComplexity), true
+
+	case "PublicUser.currentMeasurement":
+		if e.complexity.PublicUser.CurrentMeasurement == nil {
+			break
+		}
+
+		return e.complexity.PublicUser.CurrentMeasurement(childComplexity), true
 
 	case "PublicUser.id":
 		if e.complexity.PublicUser.ID == nil {
@@ -229,6 +262,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCurrentUser(childComplexity), true
+
+	case "Query.getUser":
+		if e.complexity.Query.GetUser == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUser(childComplexity, args["id"].(string)), true
 
 	case "Query.helloWorld":
 		if e.complexity.Query.HelloWorld == nil {
@@ -286,6 +331,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Sex(childComplexity), true
 
+	case "User.type":
+		if e.complexity.User.Type == nil {
+			break
+		}
+
+		return e.complexity.User.Type(childComplexity), true
+
 	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
@@ -302,6 +354,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateUser,
+		ec.unmarshalInputEditUser,
 		ec.unmarshalInputMeasurementInput,
 	)
 	first := true
@@ -449,6 +502,21 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_editUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.EditUser
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNEditUser2seams_goᚋgraphᚋmodelᚐEditUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -461,6 +529,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -792,6 +875,47 @@ func (ec *executionContext) fieldContext_Measurement_createdAt(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Measurement_metadata(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Measurement_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Measurement_metadata(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Measurement",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
@@ -842,6 +966,8 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_sex(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "type":
+				return ec.fieldContext_User_type(ctx, field)
 			case "jwt":
 				return ec.fieldContext_User_jwt(ctx, field)
 			}
@@ -856,6 +982,78 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_editUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditUser(rctx, fc.Args["input"].(model.EditUser))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖseams_goᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_editUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "provider":
+				return ec.fieldContext_User_provider(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "avi":
+				return ec.fieldContext_User_avi(ctx, field)
+			case "sex":
+				return ec.fieldContext_User_sex(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "type":
+				return ec.fieldContext_User_type(ctx, field)
+			case "jwt":
+				return ec.fieldContext_User_jwt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_editUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -912,6 +1110,8 @@ func (ec *executionContext) fieldContext_Mutation_createMeasurement(ctx context.
 				return ec.fieldContext_Measurement_active(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Measurement_createdAt(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Measurement_metadata(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Measurement", field.Name)
 		},
@@ -1141,6 +1341,65 @@ func (ec *executionContext) fieldContext_PublicUser_username(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _PublicUser_currentMeasurement(ctx context.Context, field graphql.CollectedField, obj *model.PublicUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PublicUser_currentMeasurement(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentMeasurement, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Measurement)
+	fc.Result = res
+	return ec.marshalOMeasurement2ᚖseams_goᚋgraphᚋmodelᚐMeasurement(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PublicUser_currentMeasurement(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PublicUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Measurement_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Measurement_name(ctx, field)
+			case "measuredBy":
+				return ec.fieldContext_Measurement_measuredBy(ctx, field)
+			case "measurements":
+				return ec.fieldContext_Measurement_measurements(ctx, field)
+			case "shoeSize":
+				return ec.fieldContext_Measurement_shoeSize(ctx, field)
+			case "active":
+				return ec.fieldContext_Measurement_active(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Measurement_createdAt(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Measurement_metadata(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Measurement", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_helloWorld(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_helloWorld(ctx, field)
 	if err != nil {
@@ -1232,11 +1491,79 @@ func (ec *executionContext) fieldContext_Query_getCurrentUser(_ context.Context,
 				return ec.fieldContext_User_sex(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "type":
+				return ec.fieldContext_User_type(ctx, field)
 			case "jwt":
 				return ec.fieldContext_User_jwt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUser(rctx, fc.Args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PublicUser)
+	fc.Result = res
+	return ec.marshalOPublicUser2ᚖseams_goᚋgraphᚋmodelᚐPublicUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PublicUser_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PublicUser_name(ctx, field)
+			case "avi":
+				return ec.fieldContext_PublicUser_avi(ctx, field)
+			case "sex":
+				return ec.fieldContext_PublicUser_sex(ctx, field)
+			case "username":
+				return ec.fieldContext_PublicUser_username(ctx, field)
+			case "currentMeasurement":
+				return ec.fieldContext_PublicUser_currentMeasurement(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PublicUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1651,6 +1978,47 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 }
 
 func (ec *executionContext) fieldContext_User_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_type(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -3546,6 +3914,47 @@ func (ec *executionContext) unmarshalInputCreateUser(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputEditUser(ctx context.Context, obj interface{}) (model.EditUser, error) {
+	var it model.EditUser
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"avi", "username", "type"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "avi":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avi"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Avi = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMeasurementInput(ctx context.Context, obj interface{}) (model.MeasurementInput, error) {
 	var it model.MeasurementInput
 	asMap := map[string]interface{}{}
@@ -3637,6 +4046,8 @@ func (ec *executionContext) _Measurement(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._Measurement_active(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Measurement_createdAt(ctx, field, obj)
+		case "metadata":
+			out.Values[i] = ec._Measurement_metadata(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3682,6 +4093,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
+			})
+		case "editUser":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_editUser(ctx, field)
 			})
 		case "createMeasurement":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -3737,6 +4152,8 @@ func (ec *executionContext) _PublicUser(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._PublicUser_sex(ctx, field, obj)
 		case "username":
 			out.Values[i] = ec._PublicUser_username(ctx, field, obj)
+		case "currentMeasurement":
+			out.Values[i] = ec._PublicUser_currentMeasurement(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3817,6 +4234,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getUser":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUser(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -3879,6 +4315,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_sex(ctx, field, obj)
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
+		case "type":
+			out.Values[i] = ec._User_type(ctx, field, obj)
 		case "jwt":
 			out.Values[i] = ec._User_jwt(ctx, field, obj)
 		default:
@@ -4250,6 +4688,11 @@ func (ec *executionContext) unmarshalNCreateUser2seams_goᚋgraphᚋmodelᚐCrea
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNEditUser2seams_goᚋgraphᚋmodelᚐEditUser(ctx context.Context, v interface{}) (model.EditUser, error) {
+	res, err := ec.unmarshalInputEditUser(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4585,6 +5028,13 @@ func (ec *executionContext) marshalOMeasurement2ᚖseams_goᚋgraphᚋmodelᚐMe
 		return graphql.Null
 	}
 	return ec._Measurement(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPublicUser2ᚖseams_goᚋgraphᚋmodelᚐPublicUser(ctx context.Context, sel ast.SelectionSet, v *model.PublicUser) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PublicUser(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

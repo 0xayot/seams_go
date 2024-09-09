@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"seams_go/graph/model"
 	"seams_go/models"
 	. "seams_go/utils"
@@ -25,7 +26,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	if &input.Email == nil {
 		return nil, fmt.Errorf("email is required")
 	}
-	// validEmail := ValidateGoogleIdToken(input.Email, input.Token)
+	validEmail := ValidateGoogleIdToken(input.Email, input.Token)
+
+	if !validEmail {
+		return nil, fmt.Errorf("Invalid credential")
+	}
 
 	// fmt.Print("\n Speechless \n \n ", validEmail)
 
@@ -92,10 +97,43 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	}
 }
 
+// EditUser is the resolver for the editUser field.
+func (r *mutationResolver) EditUser(ctx context.Context, input model.EditUser) (*model.User, error) {
+	user := UseGQLContext(ctx)
+
+	if user == nil {
+		return nil, fmt.Errorf("Unauthorized")
+	}
+
+	// Update fields conditionally
+	if input.Avi != nil {
+		user.Avi = *input.Avi
+	}
+	if input.Username != nil {
+		user.Username = *input.Username
+	}
+	if input.Type != nil {
+		user.Type = *input.Type
+	}
+
+	// Save the updated record
+	if err := DB.Save(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	response := model.User{
+		ID:       user.ID.String(),
+		Email:    &user.Email,
+		Name:     user.Name,
+		Avi:      &user.Avi,
+		Username: &user.Username,
+		Type:     &user.Type,
+	}
+	return &response, nil
+}
+
 // CreateMeasurement is the resolver for the createMeasurement field.
 func (r *mutationResolver) CreateMeasurement(ctx context.Context, input model.MeasurementInput) (*model.Measurement, error) {
-	fmt.Printf("Input measurement: %+v\n", input)
-
 	user := UseGQLContext(ctx)
 
 	if user == nil {
@@ -117,6 +155,7 @@ func (r *mutationResolver) CreateMeasurement(ctx context.Context, input model.Me
 		Measurements: measurementsJSON, // JSON type
 		ShoeSize:     input.ShoeSize,
 		Active:       input.Active,
+		UserID:       user.ID,
 	}
 
 	if err := DB.Create(&measurement).Error; err != nil {
@@ -124,6 +163,7 @@ func (r *mutationResolver) CreateMeasurement(ctx context.Context, input model.Me
 	}
 
 	response := model.Measurement{
+		ID:           measurement.ID.String(),
 		Name:         input.Name,
 		MeasuredBy:   input.MeasuredBy,
 		Measurements: input.Measurements, // JSON type
@@ -158,6 +198,64 @@ func (r *queryResolver) GetCurrentUser(ctx context.Context) (*model.User, error)
 	return &response, nil
 }
 
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.PublicUser, error) {
+	var existingUser models.User
+	result := DB.Where("id = ?", id).First(&existingUser)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("User not found")
+		}
+		return nil, result.Error
+	}
+
+	var latestMeasurement models.Measurement
+	var currentMeasurement model.Measurement
+
+	err := DB.Where("user_id = ?", id).Where("active = ?", true).
+		Order("created_at desc").  // Order by created_at descending
+		First(&latestMeasurement). // Get the first result (latest)
+		Error
+
+	var measurementsMap map[string]interface{}
+	if err == nil {
+
+		err = json.Unmarshal(latestMeasurement.Measurements, &measurementsMap)
+
+		if err != nil {
+			log.Fatalf("Error converting JSON to map: %v", err)
+		}
+
+		currentMeasurement = model.Measurement{
+			ID:           latestMeasurement.ID.String(),
+			MeasuredBy:   latestMeasurement.MeasuredBy,
+			Measurements: measurementsMap,
+			ShoeSize:     latestMeasurement.ShoeSize,
+		}
+
+		response := model.PublicUser{
+			ID:                 existingUser.ID.String(),
+			Name:               existingUser.Name,
+			Avi:                &existingUser.Avi,
+			Username:           &existingUser.Username,
+			CurrentMeasurement: &currentMeasurement,
+		}
+
+		return &response, nil
+
+	} else {
+		fmt.Println("measurement not found")
+		response := model.PublicUser{
+			ID:       existingUser.ID.String(),
+			Name:     existingUser.Name,
+			Avi:      &existingUser.Avi,
+			Username: &existingUser.Username,
+		}
+
+		return &response, nil
+	}
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -166,13 +264,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) GetUser(ctx context.Context) (*model.PublicUser, error) {
-	panic(fmt.Errorf("not implemented: GetUser - getUser"))
-}

@@ -12,6 +12,12 @@ type CreateUser struct {
 	Username *string `json:"username,omitempty"`
 }
 
+type EditUser struct {
+	Avi      *string `json:"avi,omitempty"`
+	Username *string `json:"username,omitempty"`
+	Type     *string `json:"type,omitempty"`
+}
+
 type Measurement struct {
 	ID           string                 `json:"id"`
 	Name         *string                `json:"name,omitempty"`
@@ -20,6 +26,7 @@ type Measurement struct {
 	ShoeSize     *string                `json:"shoeSize,omitempty"`
 	Active       *bool                  `json:"active,omitempty"`
 	CreatedAt    *string                `json:"createdAt,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type MeasurementInput struct {
@@ -34,11 +41,12 @@ type Mutation struct {
 }
 
 type PublicUser struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Avi      *string `json:"avi,omitempty"`
-	Sex      *string `json:"sex,omitempty"`
-	Username *string `json:"username,omitempty"`
+	ID                 string       `json:"id"`
+	Name               string       `json:"name"`
+	Avi                *string      `json:"avi,omitempty"`
+	Sex                *string      `json:"sex,omitempty"`
+	Username           *string      `json:"username,omitempty"`
+	CurrentMeasurement *Measurement `json:"currentMeasurement,omitempty"`
 }
 
 type Query struct {
@@ -52,5 +60,6 @@ type User struct {
 	Avi      *string `json:"avi,omitempty"`
 	Sex      *string `json:"sex,omitempty"`
 	Username *string `json:"username,omitempty"`
+	Type     *string `json:"type,omitempty"`
 	Jwt      *string `json:"jwt,omitempty"`
 }

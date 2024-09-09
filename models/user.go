@@ -9,4 +9,5 @@ type User struct {
 	Avi      string
 	Sex      string
 	Username string
+	Type     string
 }
