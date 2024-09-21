@@ -231,6 +231,9 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.PublicUs
 			MeasuredBy:   latestMeasurement.MeasuredBy,
 			Measurements: measurementsMap,
 			ShoeSize:     latestMeasurement.ShoeSize,
+			Name:         &latestMeasurement.Name,
+			Active:       latestMeasurement.Active,
+			// CreatedAt: latestMeasurement.CreatedAt.String(),
 		}
 
 		response := model.PublicUser{
