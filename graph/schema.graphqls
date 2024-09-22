@@ -2,6 +2,7 @@ type Query {
   helloWorld: String
   getCurrentUser: User
   getUser(id: String!): PublicUser
+  listMeasurements: [Measurement]!
 }
 
 type Mutation {

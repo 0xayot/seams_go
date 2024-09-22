@@ -259,6 +259,47 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.PublicUs
 	}
 }
 
+// ListMeasurements is the resolver for the listMeasurements field.
+func (r *queryResolver) ListMeasurements(ctx context.Context) ([]*model.Measurement, error) {
+	user := UseGQLContext(ctx)
+
+	if user == nil {
+		return nil, fmt.Errorf("Unauthorized")
+	}
+
+	var measurements []models.Measurement
+	var responseSlice []*model.Measurement
+
+	// // Query the database
+	if err := DB.Where("user_id = ?", user.ID).Find(&measurements).Error; err != nil {
+		return nil, err // Handle query error
+	}
+
+	for _, m := range measurements {
+		log.Printf("Measurement: %+v\n", m)
+		var measurementsMap map[string]interface{}
+
+		loopError := json.Unmarshal(m.Measurements, &measurementsMap)
+
+		if loopError != nil {
+			fmt.Println("Error unmarshalling: ", loopError)
+		}
+
+		currentMeasurement := &model.Measurement{
+			ID:           m.ID.String(),
+			MeasuredBy:   m.MeasuredBy,
+			Measurements: measurementsMap,
+			ShoeSize:     m.ShoeSize,
+			Name:         &m.Name,
+			Active:       m.Active,
+		}
+
+		responseSlice = append(responseSlice, currentMeasurement)
+	}
+
+	return responseSlice, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
