@@ -23,7 +23,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	fmt.Printf("Input user: %+v\n", input)
 
 	// Check if required fields are present
-	if &input.Email == nil {
+	if input.Email == "" {
 		return nil, fmt.Errorf("email is required")
 	}
 	validEmail := ValidateGoogleIdToken(input.Email, input.Token)
