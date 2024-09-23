@@ -12,9 +12,20 @@ type CreateUser struct {
 	Username *string `json:"username,omitempty"`
 }
 
+type EditMeasurementInput struct {
+	ID           *string                `json:"id,omitempty"`
+	Name         *string                `json:"name,omitempty"`
+	MeasuredBy   *string                `json:"measuredBy,omitempty"`
+	Measurements map[string]interface{} `json:"measurements,omitempty"`
+	ShoeSize     *string                `json:"shoeSize,omitempty"`
+	Active       *bool                  `json:"active,omitempty"`
+	Type         *string                `json:"type,omitempty"`
+}
+
 type EditUser struct {
 	Avi      *string `json:"avi,omitempty"`
 	Username *string `json:"username,omitempty"`
+	Sex      *string `json:"sex,omitempty"`
 	Type     *string `json:"type,omitempty"`
 }
 
@@ -35,6 +46,7 @@ type MeasurementInput struct {
 	Measurements map[string]interface{} `json:"measurements,omitempty"`
 	ShoeSize     *string                `json:"shoeSize,omitempty"`
 	Active       *bool                  `json:"active,omitempty"`
+	Type         *string                `json:"type,omitempty"`
 }
 
 type Mutation struct {
@@ -53,13 +65,14 @@ type Query struct {
 }
 
 type User struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Provider *string `json:"provider,omitempty"`
-	Email    *string `json:"email,omitempty"`
-	Avi      *string `json:"avi,omitempty"`
-	Sex      *string `json:"sex,omitempty"`
-	Username *string `json:"username,omitempty"`
-	Type     *string `json:"type,omitempty"`
-	Jwt      *string `json:"jwt,omitempty"`
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Provider     *string        `json:"provider,omitempty"`
+	Email        *string        `json:"email,omitempty"`
+	Avi          *string        `json:"avi,omitempty"`
+	Sex          *string        `json:"sex,omitempty"`
+	Username     *string        `json:"username,omitempty"`
+	Type         *string        `json:"type,omitempty"`
+	Jwt          *string        `json:"jwt,omitempty"`
+	Measurements []*Measurement `json:"measurements,omitempty"`
 }

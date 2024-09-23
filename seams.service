@@ -1,0 +1,22 @@
+[Unit]
+Description=Seams Backend API
+
+[Service]
+Environment=GOOGLE_CLIENT_ID=40fau80iurmji.apps.googleusercontent.com
+Environment=GOOGLE_CLIENT_SECRET=GOCSRnwPZbVY3pd
+Environment=GOOGLE_REDIRECT_URL=http://localhost:3000/auth/google/callback
+Environment=DATABASE_URL=postgres://default:Ophkrj634y81a.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require
+Environment=SECRET_KEY=a094c0b6612142e164a47e
+Environment=SESSION_SECRET=dnsliuhcowuhn
+Environment=APP_ENV=dev
+Environment=GOOGLE_API_KEY=AI1zkAXnz6DlwtavUoiIsQ03l1E
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/home/seams/go/src/seams_go/seams_go
+User=seams
+Group=seams
+UMask=007
+
+[Install]
+WantedBy=multi-user.targe
