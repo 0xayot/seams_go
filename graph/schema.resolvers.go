@@ -301,7 +301,7 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.PublicUs
 		if err != nil {
 			log.Fatalf("Error converting JSON to map: %v", err)
 		}
-
+		createdAtStr := latestMeasurement.CreatedAt.String()
 		currentMeasurement = model.Measurement{
 			ID:           latestMeasurement.ID.String(),
 			MeasuredBy:   latestMeasurement.MeasuredBy,
@@ -309,7 +309,7 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.PublicUs
 			ShoeSize:     latestMeasurement.ShoeSize,
 			Name:         &latestMeasurement.Name,
 			Active:       latestMeasurement.Active,
-			// CreatedAt: latestMeasurement.CreatedAt.String(),
+			CreatedAt:    &createdAtStr,
 		}
 
 		response := model.PublicUser{
@@ -360,6 +360,8 @@ func (r *queryResolver) ListMeasurements(ctx context.Context) ([]*model.Measurem
 			fmt.Println("Error unmarshalling: ", loopError)
 		}
 
+		createdAtStr := m.CreatedAt.String()
+
 		currentMeasurement := &model.Measurement{
 			ID:           m.ID.String(),
 			MeasuredBy:   m.MeasuredBy,
@@ -367,6 +369,7 @@ func (r *queryResolver) ListMeasurements(ctx context.Context) ([]*model.Measurem
 			ShoeSize:     m.ShoeSize,
 			Name:         &m.Name,
 			Active:       m.Active,
+			CreatedAt:    &createdAtStr,
 		}
 
 		responseSlice = append(responseSlice, currentMeasurement)
