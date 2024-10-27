@@ -2,6 +2,14 @@
 
 package model
 
+type AddWishInput struct {
+	Name        string  `json:"name"`
+	URL         *string `json:"url,omitempty"`
+	Image       *string `json:"image,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Price       *string `json:"price,omitempty"`
+}
+
 type CreateUser struct {
 	Token    string  `json:"token"`
 	Email    string  `json:"email"`
@@ -75,4 +83,23 @@ type User struct {
 	Type         *string        `json:"type,omitempty"`
 	Jwt          *string        `json:"jwt,omitempty"`
 	Measurements []*Measurement `json:"measurements,omitempty"`
+}
+
+type Wish struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	URL         string  `json:"url"`
+	Image       *string `json:"image,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	UserID      string  `json:"userId"`
+}
+
+type EditUserWishInput struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	URL         *string `json:"url,omitempty"`
+	Image       *string `json:"image,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Price       *string `json:"price,omitempty"`
 }

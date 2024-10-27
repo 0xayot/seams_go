@@ -5,8 +5,8 @@ go 1.22.5
 toolchain go1.22.6
 
 require (
-	github.com/99designs/gqlgen v0.17.54
-	github.com/vektah/gqlparser/v2 v2.5.16
+	github.com/99designs/gqlgen v0.17.55
+	github.com/vektah/gqlparser/v2 v2.5.17
 	google.golang.org/api v0.191.0
 	gorm.io/gorm v1.25.11
 )

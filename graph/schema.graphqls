@@ -10,6 +10,10 @@ type Mutation {
   editUser(input: EditUser!): User
   createMeasurement(input: MeasurementInput!): Measurement
   editMeasurement(data: EditMeasurementInput): Measurement
+  deleteMeasurement(id: String): Boolean
+  addWish(data: AddWishInput): Wish
+  editWish(data: editUserWishInput): Wish
+  deleteWish(id: String): Boolean
 }
 
 type User {
@@ -79,6 +83,33 @@ input EditMeasurementInput {
   shoeSize: String
   active: Boolean
   type: String
+}
+
+type Wish {
+  id: ID!
+  name: String!
+  url: String!
+  image: String
+  description: String
+  price: String
+  userId: ID!
+}
+
+input AddWishInput {
+  name: String!
+  url: String
+  image: String
+  description: String
+  price: String
+}
+
+input editUserWishInput {
+  id: ID!
+  name: String!
+  url: String
+  image: String
+  description: String
+  price: String
 }
 
 scalar Map
